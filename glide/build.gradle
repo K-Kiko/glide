@@ -86,12 +86,12 @@ def getSourceFilesForVariantJar(variantName) {
         it.getJavaCompiler().source.findAll {
             return !it.getName().equals("R.java") && !it.getName().equals("BuildConfig.java")
         }
-    } + getInternalJavaProjectsForJar().collect { it.sourceSets.main.allJava }
+    } + getInternalJavaProjectsForJar().collect { sourceSets.main.allJava }
 }
 
 def getSourceFilesForVariantJavadoc(variantName) {
     getAndroidLibraryVariantsForJavadoc(variantName).collect { it.getJavaCompiler().source } +
-            getInternalJavaProjectsForJavadoc().collect { it.sourceSets.main.allJava }
+            getInternalJavaProjectsForJavadoc().collect { sourceSets.main.allJava }
 }
 
 def getAndroidJar() {
@@ -123,10 +123,10 @@ project.archivesBaseName = "${POM_ARTIFACT_ID}-${VERSION_NAME}"
                                 LibraryVariant lib -> lib.getJavaCompiler().classpath.files
                             },
                             getInternalJavaProjectsForJavadoc().collect { Project project ->
-                                project.sourceSets.main.compileClasspath.files
+                                sourceSets.main.compileClasspath.files
                             },
                             getInternalJavaProjectsForJar().collect { Project project ->
-                                project.sourceSets.main.compileClasspath.files
+                                sourceSets.main.compileClasspath.files
                             },
                             // Finds dependencies of Android packages that would otherwise be
                             // ignored (Volley in particular)
@@ -165,7 +165,7 @@ jar {
                 variant.getJavaCompiler().destinationDir
             }
     )
-    from files(getInternalJavaProjectsForJar().collect { it.sourceSets.main.output })
+    from files(getInternalJavaProjectsForJar().collect { sourceSets.main.output })
     exclude "**/R.class"
     exclude "**/BuildConfig.class"
     exclude "**/R\$*.class"
@@ -180,8 +180,8 @@ jar {
 
 (getInternalJavaProjectsForJar() + getInternalJavaProjectsForJavadoc()).each {
     project ->
-        debugJavadoc.dependsOn(project.tasks.compileJava)
-        jar.dependsOn(project.tasks.compileJava)
+        debugJavadoc.dependsOn(tasks.compileJava)
+        jar.dependsOn(tasks.compileJava)
 }
 
 artifacts {
