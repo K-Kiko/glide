@@ -14,7 +14,6 @@ import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
-import android.support.graphics.drawable.Animatable2Compat;
 import android.view.Gravity;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.gifdecoder.GifDecoder;
@@ -22,14 +21,12 @@ import com.bumptech.glide.load.Transformation;
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
 import com.bumptech.glide.util.Preconditions;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * An animated {@link android.graphics.drawable.Drawable} that plays the frames of an animated GIF.
  */
 public class GifDrawable extends Drawable implements GifFrameLoader.FrameCallback,
-    Animatable, Animatable2Compat {
+    Animatable {
   /**
    * A constant indicating that an animated drawable should loop continuously.
    */
@@ -80,11 +77,6 @@ public class GifDrawable extends Drawable implements GifFrameLoader.FrameCallbac
   private Rect destRect;
 
   /**
-   * Callbacks to notify loop completion of a gif, where the loop count is explicitly specified.
-   */
-  private List<AnimationCallback> animationCallbacks;
-
-  /**
    * Constructor for GifDrawable.
    *
    * @param context             A context.
@@ -118,7 +110,7 @@ public class GifDrawable extends Drawable implements GifFrameLoader.FrameCallbac
     this(context, gifDecoder, frameTransformation, targetFrameWidth, targetFrameHeight, firstFrame);
   }
 
-   /**
+  /**
    * Constructor for GifDrawable.
    *
    * @param context             A context.
@@ -359,16 +351,7 @@ public class GifDrawable extends Drawable implements GifFrameLoader.FrameCallbac
     }
 
     if (maxLoopCount != LOOP_FOREVER && loopCount >= maxLoopCount) {
-      notifyAnimationEndToListeners();
       stop();
-    }
-  }
-
-  private void notifyAnimationEndToListeners() {
-    if (animationCallbacks != null) {
-      for (int i = 0, size = animationCallbacks.size(); i < size; i++) {
-        animationCallbacks.get(i).onAnimationEnd(this);
-      }
     }
   }
 
@@ -404,42 +387,6 @@ public class GifDrawable extends Drawable implements GifFrameLoader.FrameCallbac
           (intrinsicCount == TOTAL_ITERATION_COUNT_FOREVER) ? LOOP_FOREVER : intrinsicCount;
     } else {
       maxLoopCount = loopCount;
-    }
-  }
-
-  /**
-   * Register callback to listen to GifDrawable animation end event after specific loop count
-   * set by {@link GifDrawable#setLoopCount(int)}.
-   *
-   * Note: This will only be called if the Gif stop because it reaches the loop count. Unregister
-   * this in onLoadCleared to avoid potential memory leak.
-   * @see GifDrawable#unregisterAnimationCallback(AnimationCallback).
-   *
-   * @param animationCallback Animation callback {@link Animatable2Compat.AnimationCallback}.
-   */
-  @Override
-  public void registerAnimationCallback(@NonNull AnimationCallback animationCallback) {
-    if (animationCallback == null) {
-      return;
-    }
-    if (animationCallbacks == null) {
-      animationCallbacks = new ArrayList<>();
-    }
-    animationCallbacks.add(animationCallback);
-  }
-
-  @Override
-  public boolean unregisterAnimationCallback(@NonNull AnimationCallback animationCallback) {
-    if (animationCallbacks == null || animationCallback == null) {
-      return false;
-    }
-    return animationCallbacks.remove(animationCallback);
-  }
-
-  @Override
-  public void clearAnimationCallbacks() {
-    if (animationCallbacks != null) {
-      animationCallbacks.clear();
     }
   }
 
